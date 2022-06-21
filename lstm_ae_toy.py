@@ -8,12 +8,12 @@ import random_data
 import matplotlib.pyplot as plt
 
 # hyper-params
-epoch_num = 1
+epoch_num = 70
 batch_size = 20
 data_set = "random"
 random_input_dim = 10000
 random_seq_len = 50
-random_latent_dim = 30
+random_latent_dim = 45
 
 
 def plot_points(g_t, prediction):
@@ -59,12 +59,15 @@ for epoch in range(epoch_num):
             inputs = torch.reshape(inputs, (inputs.shape[0], 28 * 28))
         else:
             inputs = data
+        # inputs = torch.unsqueeze(inputs, 2) # changed here
         inputs = inputs.double()
         opt.zero_grad()
         outputs = model(inputs)
         loss = criterion(outputs, inputs)
         loss.backward()
+        nn.utils.clip_grad_value_(model.parameters(), clip_value=1.0) # gradient clipping
         opt.step()
+
 
         # print stats
         total_loss += loss.item()
@@ -81,6 +84,8 @@ with torch.no_grad():
             inputs = torch.reshape(inputs, (inputs.shape[0], 28 * 28))
         else:
             inputs = data
+            # inputs = torch.unsqueeze(inputs, 2)  # changed here
+
     outputs = model(inputs)
     plot_points(inputs[0], outputs[0])
     plot_points(inputs[1], outputs[1])
