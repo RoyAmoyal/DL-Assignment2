@@ -16,7 +16,7 @@ def imshow(img):
     pass
 
 # hyper-params
-epoch_num = 1
+epoch_num = 3
 batch_size = 20
 
 
@@ -59,6 +59,7 @@ def train():
             total_loss += loss.item()
             if i % 100 == 99:
                     print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, total_loss/100))
+            total_loss = 0
 
 train()
 
@@ -70,16 +71,9 @@ with torch.no_grad():
         inputs = inputs.double()
         # inputs = torch.reshape(inputs, (inputs.shape[0], 28 * 28))
         outputs = model(inputs)
+        imshow(torchvision.utils.make_grid(torch.unsqueeze(inputs, 1)))
+        imshow(torchvision.utils.make_grid(torch.unsqueeze(outputs, 1)))
         exit()
-        imshow(torchvision.utils.make_grid(inputs))
-        outputs_pic = inputs
-        for j in range(28):
-            temp_input = inputs[:, :, :, j]
-            temp_input = torch.squeeze(temp_input, 1)
-            outputs = model(temp_input)
-            unsq_outputs = torch.unsqueeze(outputs, 1)
-            outputs_pic[:, :, :, j] = unsq_outputs
-        imshow(torchvision.utils.make_grid(outputs_pic))
 
 
 

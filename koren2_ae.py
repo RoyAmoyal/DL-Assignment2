@@ -81,10 +81,7 @@ class Decoder(nn.Module):
         # )
 
     def forward(self, x, seq_len):
-        print(x.shape)
         x, (h_n, c_n) = self.layers[0](x)  # only one block (of N layers)
-        print(x.shape)
-        exit()
         # for index, layer in enumerate(self.layers):
         #     x, (h_n, c_n) = layer(x)
         #
