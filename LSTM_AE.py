@@ -18,11 +18,19 @@ class Encoder(nn.Module):
             self.layers.append(layer)
         layer = nn.LSTM(
             input_size=input_dim,
+            hidden_size=40,
+            num_layers=1,
+            batch_first=True
+        )
+        self.layers.append(layer)
+        layer = nn.LSTM(
+            input_size=40,
             hidden_size=out_dim,
             num_layers=1,
             batch_first=True
         )
         self.layers.append(layer)
+
         self.h_activ, self.out_activ = h_activ, out_activ
 
     def forward(self, x):

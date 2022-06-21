@@ -7,13 +7,23 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.num_layers = input_dim
         self.layers = nn.ModuleList()
-        layer = nn.LSTM(
-            input_size=input_dim,
-            hidden_size=out_dim,
-            num_layers=input_dim,
-            batch_first=True
-        )
-        self.layers.append(layer)
+        for i in range(input_dim-out_dim):  # decreasing the dimension in 1 in each lstm til output dim
+            layer = nn.LSTM(
+                input_size=input_dim-i,
+                hidden_size=input_dim-i-1,
+                num_layers=1,
+                batch_first=True
+            )
+            self.layers.append(layer)
+        for i in range(out_dim):
+            layer = nn.LSTM(
+                input_size=out_dim,
+                hidden_size=out_dim,
+                num_layers=1,
+                batch_first=True
+            )
+            self.layers.append(layer)
+
         self.h_activ, self.out_activ = h_activ, out_activ
 
     def forward(self, x):
@@ -32,24 +42,37 @@ class Decoder(nn.Module):
         super(Decoder, self).__init__()
         self.num_layers = input_dim
         self.layers = nn.ModuleList()
-        layer = nn.LSTM(
-            input_size=input_dim,
-            hidden_size=out_dim,
-            num_layers=input_dim,
-            batch_first=True
-        )
-        self.layers.append(layer)
+        for i in range(out_dim-input_dim):
+            layer = nn.LSTM(
+                input_size=input_dim+i,
+                hidden_size=input_dim+i+1,
+                num_layers=1,
+                batch_first=True
+            )
+            self.layers.append(layer)
+        for i in range(input_dim):
+            layer = nn.LSTM(
+                input_size=out_dim,
+                hidden_size=out_dim,
+                num_layers=1,
+                batch_first=True
+            )
+            self.layers.append(layer)
+
         self.h_activ = h_activ
         # self.dense_matrix = nn.Parameter(
         #     torch.rand((out_dim, out_dim), dtype=torch.float),
         #     requires_grad=True
         # )
 
-
     def forward(self, x, seq_len):
-        # x = x.repeat(seq_len, 1).unsqueeze(0)
-        x, (h_n, c_n) = self.layers[0](x)  # only one block (of N layers)
-        # x = self.h_activ(x)
+        # x, (h_n, c_n) = self.layers[0](x)  # only one block (of N layers)
+        for index, layer in enumerate(self.layers):
+            x, (h_n, c_n) = layer(x)
+
+            if self.h_activ and index < self.num_layers - 1:
+                x = self.h_activ(x)
+
         return x
 
 

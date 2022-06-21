@@ -8,7 +8,7 @@ import random_data
 import matplotlib.pyplot as plt
 
 # hyper-params
-epoch_num = 5
+epoch_num = 1
 batch_size = 20
 data_set = "random"
 random_input_dim = 10000
@@ -81,13 +81,11 @@ with torch.no_grad():
             inputs = torch.reshape(inputs, (inputs.shape[0], 28 * 28))
         else:
             inputs = data
-        outputs = model(inputs)
-        plot_points(inputs[0], outputs[0])
-        plot_points(inputs[1], outputs[1])
-        plot_points(inputs[2], outputs[2])
-        exit()
-        print("the input:", inputs)
-        print("the output:", outputs)
+    outputs = model(inputs)
+    plot_points(inputs[0], outputs[0])
+    plot_points(inputs[1], outputs[1])
+    plot_points(inputs[2], outputs[2])
+
 
 
 
