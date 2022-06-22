@@ -8,16 +8,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def imshow(img):
+def imshow(img, string):
     img = img / 2 + 0.5
     npimg = img.numpy()
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
+    plt.title(string)
     plt.show()
     pass
 
 # hyper-params
-epoch_num = 3
+epoch_num = 4
 batch_size = 20
+classification = True
 
 
 transform = transforms.Compose(
@@ -32,11 +34,20 @@ testset = torchvision.datasets.MNIST(root='./data', train=False,
 testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
                                          shuffle=False)
 
-model = koren2_ae.koren_AE(28, 24)
+classes = ('0', '1', '2', '3', '4',
+           '5', '6', '7', '8', '9')
+
+
+model = koren2_ae.koren_AE(28, 24, classification)
 model = model.double()
 opt = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 # opt = optim.Adam(model.parameters(), lr=1e-3)
 criterion = nn.MSELoss()
+criterion2 = nn.CrossEntropyLoss()
+
+def classification_criterion(criterion1, criterion2, outputs, inputs, labels_out, labels):
+    lam1, lam2 = 1, 1
+    return lam1 * criterion1(outputs, inputs) + lam2 * criterion2(labels_out, labels)
 
 
 def train():
@@ -50,8 +61,12 @@ def train():
             # inputs = torch.reshape(inputs, (inputs.shape[0], 28 * 28))
             inputs = inputs.double()
             opt.zero_grad()
-            outputs = model(inputs)
-            loss = criterion(outputs, inputs)
+            if classification == False:
+                outputs = model(inputs)
+                loss = criterion(outputs, inputs)
+            else:
+                outputs, label_out = model(inputs, classification)
+                loss = classification_criterion(criterion, criterion2, outputs, inputs, label_out, labels)
             loss.backward()
             nn.utils.clip_grad_value_(model.parameters(), clip_value=1.0)  # gradient clipping
             opt.step()
@@ -66,14 +81,23 @@ train()
 with torch.no_grad():
     total, correct = 0, 0
     for data in testloader:
-        inputs, _ = data
+        inputs, labels = data
         inputs = torch.squeeze(inputs)
         inputs = inputs.double()
         # inputs = torch.reshape(inputs, (inputs.shape[0], 28 * 28))
-        outputs = model(inputs)
-        imshow(torchvision.utils.make_grid(torch.unsqueeze(inputs, 1)))
-        imshow(torchvision.utils.make_grid(torch.unsqueeze(outputs, 1)))
-        exit()
+        if classification == False: # then show me 2 examples, nothing to test
+           outputs = model(inputs)
+           imshow(torchvision.utils.make_grid(torch.unsqueeze(inputs, 1)))
+           imshow(torchvision.utils.make_grid(torch.unsqueeze(outputs, 1)))
+        else:
+            outputs, label_out = model(inputs, classification)
+            # the class with the highest energy is what we choose as prediction
+            _, predicted = torch.max(label_out.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+print('Accuracy of the network on the 10000 test images: %d %%' % (
+    100 * correct / total))
+
 
 
 

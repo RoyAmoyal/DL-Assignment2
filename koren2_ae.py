@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 #
 class Encoder(nn.Module):
@@ -92,16 +93,33 @@ class Decoder(nn.Module):
 
 
 class koren_AE(nn.Module):
-    def __init__(self, input_dim, encoding_dim, h_activ=nn.Sigmoid(),
+    def __init__(self, input_dim, encoding_dim, classification=False, h_activ=nn.Sigmoid(),
                  out_activ=nn.Tanh()):
         super(koren_AE, self).__init__()
         self.encoder = Encoder(input_dim, encoding_dim, h_activ, out_activ)
         self.decoder = Decoder(encoding_dim, input_dim, h_activ)
+        self.conv1 = nn.Conv2d(1, 6, 5)   # maybe 5X5
+        self.pool = nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Conv2d(6, 16, 5)
+        self.fc1 = nn.Linear(16 * 4 * 4, 120)  # 4*4 are the remaining pixels. was 28X28 -> 24X24 -> 12X12 -> 8X8 -> 4X4
+        self.fc2 = nn.Linear(120, 84)          # because according to the picture up, after every conv there is max-pooling
+        self.fc3 = nn.Linear(84, 10)
+        self.classify = classification
         # self.linearDecoder = torch.nn.Linear(60, 1)
 
-    def forward(self, x):
+    def forward(self, x, classification):
         seq_len = x.shape[0]
         x = self.encoder(x)
         x = self.decoder(x, seq_len)
+        clone_x = x
+        if self.classify == True:
+            x = x.unsqueeze(1)
+            x = self.pool(F.relu(self.conv1(x)))
+            x = self.pool(F.relu(self.conv2(x)))
+            x = torch.flatten(x, 1) # flatten all dimensions except batch
+            x = F.relu(self.fc1(x))
+            x = F.relu(self.fc2(x))
+            x = self.fc3(x)
+            return clone_x, x
         # x = self.linearDecoder(x)
         return x
