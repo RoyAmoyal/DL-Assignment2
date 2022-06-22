@@ -18,6 +18,7 @@ if __name__ == '__main__':
     random_input_dim = 10000
     random_seq_len = 50
     random_latent_dim = 30
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     if data_set == 'random':
         trainloader = random_data.random_data(batch_size, random_input_dim, random_seq_len).iterator()
@@ -50,6 +51,8 @@ if __name__ == '__main__':
                 inputs = data
             inputs = inputs.double()
             opt.zero_grad()
+            # prepare data
+            inputs = inputs.to(device)
             outputs = model(inputs)
             loss = criterion(outputs, inputs)
             loss.backward()
@@ -70,6 +73,7 @@ if __name__ == '__main__':
                 inputs = torch.reshape(inputs, (inputs.shape[0], 28 * 28))
             else:
                 inputs = data
+            inputs = inputs.to(device)
             outputs = model(inputs)
 
             print("the input:", inputs)

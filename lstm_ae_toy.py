@@ -6,21 +6,28 @@ import torchvision.transforms as transforms
 import koren_ae
 import random_data
 import matplotlib.pyplot as plt
-
+import os
+import time
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 # hyper-params
-epoch_num = 70
-batch_size = 2
+
+epoch_num = 500
+batch_size = 100
+
 data_set = "random"
 random_input_dim = 10000
 random_seq_len = 50
-random_latent_dim = 45
+random_latent_dim = 40
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def plot_points(g_t, prediction):
     x = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
          31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50]
-    plt.plot(x, g_t, label='Ground Truth')
-    plt.plot(x, prediction, label='prediciton')
+    prediction = prediction.cpu()
+    g_t = g_t.cpu()
+    plt.plot(x, g_t, label='original signal')
+    plt.plot(x, prediction, label='reconstruction')
     plt.legend()
     plt.ylabel('value')
     plt.xlabel('time step')
@@ -54,7 +61,7 @@ elif data_set == 'MNIST': # pixel mnist
 
 model = model.double()
 # opt = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-opt = optim.Adam(model.parameters(), lr=1e-3)
+opt = optim.Adam(model.parameters(), lr=0.01)
 criterion = nn.MSELoss()
 
 for i, data in enumerate(trainloader):
@@ -76,6 +83,9 @@ for epoch in range(epoch_num):
         # inputs = torch.unsqueeze(inputs, 2) # changed here
         inputs = inputs.double()
         opt.zero_grad()
+        inputs = inputs.unsqueeze(0)
+        inputs = inputs.to(device)
+        model.to(device)
         outputs = model(inputs)
         loss = criterion(outputs, inputs)
         loss.backward()
@@ -85,25 +95,28 @@ for epoch in range(epoch_num):
 
         # print stats
         total_loss += loss.item()
-        if i % 5 == 4:
-            print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, total_loss/5))
-        total_loss = 0
+    print('[%d] loss: %.6f' % (epoch + 1, total_loss))
 
 with torch.no_grad():
     total, correct = 0, 0
     for data in testloader:
         if data_set != 'random':
             inputs, _ = data
-            inputs = torch.squeeze(inputs, 1)
             inputs = torch.reshape(inputs, (inputs.shape[0], 28 * 28))
         else:
             inputs = data
             # inputs = torch.unsqueeze(inputs, 2)  # changed here
+    inputs = torch.unsqueeze(inputs, 0)  # changed here
 
+    inputs = inputs.to(device)
+    model = model.to(device)
     outputs = model(inputs)
-    plot_points(inputs[0], outputs[0])
-    plot_points(inputs[1], outputs[1])
-    plot_points(inputs[2], outputs[2])
+    print(outputs.shape)
+    print(inputs.shape)
+    plot_points(inputs[0][0], outputs[0][0])
+    plot_points(inputs[0][1], outputs[0][1])
+    time.sleep(2)
+    plot_points(inputs[0][2], outputs[0][2])
 
 
 

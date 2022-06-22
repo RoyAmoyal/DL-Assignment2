@@ -7,6 +7,8 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.num_layers = input_dim
         self.layers = nn.ModuleList()
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
         # for i in range(input_dim-out_dim):  # decreasing the dimension in 1 in each lstm til output dim
         #     layer = nn.LSTM(
         #         input_size=input_dim-i,
@@ -29,14 +31,15 @@ class Encoder(nn.Module):
             num_layers=1,
             batch_first=True
         )
+
         self.layers.append(layer)
 
         self.h_activ, self.out_activ = h_activ, out_activ
 
     def forward(self, x):
-        # x = x.unsqueeze(0)
         # exit()
         for index, layer in enumerate(self.layers):
+            layer.to(self.device)
             x, (h_n, c_n) = layer(x)
             if self.h_activ and index < self.num_layers - 1:
                 x = self.h_activ(x)
@@ -72,6 +75,7 @@ class Decoder(nn.Module):
             num_layers=1,
             batch_first=True
         )
+
         self.layers.append(layer)
 
         self.h_activ = h_activ
@@ -81,6 +85,8 @@ class Decoder(nn.Module):
         # )
 
     def forward(self, x, seq_len):
+        x = x.unsqueeze(0)
+
         x, (h_n, c_n) = self.layers[0](x)  # only one block (of N layers)
         # for index, layer in enumerate(self.layers):
         #     x, (h_n, c_n) = layer(x)
