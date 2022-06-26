@@ -50,36 +50,20 @@ if data_set == 'random':
     testloader = random_object.testing_iterator()
     validationloader = random_object.validation_iterator()
     model = koren_ae.koren_AE(random_seq_len, random_latent_dim)
-elif data_set == 'MNIST': # pixel mnist
-    transform = transforms.Compose(
-        [transforms.ToTensor(),
-         transforms.Normalize(0.5, 0.5)])
-    trainset = torchvision.datasets.MNIST(root='../data/', train=True, download=True,
-                                            transform=transform)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
-    model = koren_ae.koren_AE(28*28, 500)
+
 
 model = model.double()
 # opt = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 opt = optim.Adam(model.parameters(), lr=0.01)
 criterion = nn.MSELoss()
 
-for i, data in enumerate(trainloader):
-    if i == 1:
-        exit()
-    plot_random(data[0], data[1])
 
 # iterate over #epochs
 for epoch in range(epoch_num):
     total_loss = 0.0
     # iterate over the dataset
     for i, data in enumerate(trainloader):
-        if data_set != 'random':
-            inputs, _ = data
-            inputs = torch.squeeze(inputs, 1)
-            inputs = torch.reshape(inputs, (inputs.shape[0], 28 * 28))
-        else:
-            inputs = data
+        inputs = data
         # inputs = torch.unsqueeze(inputs, 2) # changed here
         inputs = inputs.double()
         opt.zero_grad()
@@ -100,12 +84,8 @@ for epoch in range(epoch_num):
 with torch.no_grad():
     total, correct = 0, 0
     for data in testloader:
-        if data_set != 'random':
-            inputs, _ = data
-            inputs = torch.reshape(inputs, (inputs.shape[0], 28 * 28))
-        else:
-            inputs = data
-            # inputs = torch.unsqueeze(inputs, 2)  # changed here
+        inputs = data
+      # inputs = torch.unsqueeze(inputs, 2)  # changed here
     inputs = torch.unsqueeze(inputs, 0)  # changed here
 
     inputs = inputs.to(device)

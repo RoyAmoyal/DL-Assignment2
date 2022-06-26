@@ -23,10 +23,14 @@ def imshow(img,some_string):
 
 # hyper-params
 epoch_num = 30
-batch_size = 200
-classification = True
+batch_size = 600
+classification = False
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("Using the device: ",device)
+pix_by_pix = True
+
+
+
 
 
 transform = transforms.Compose(
@@ -38,15 +42,21 @@ trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuff
 
 testset = torchvision.datasets.MNIST(root='./data', train=False,
                                        download=True, transform=transform)
-testloader = torch.utils.data.DataLoader(testset, batch_size=100,
+testloader = torch.utils.data.DataLoader(testset, batch_size=3,
                                          shuffle=False)
 
 
 classes = ('0', '1', '2', '3', '4',
            '5', '6', '7', '8', '9')
 
+if not pix_by_pix:
+    epoch_num = 300
+    model = koren2_ae.koren_AE(28, 15, classification, pix_by_pix=pix_by_pix)
+else:
+    epoch_num = 5
+    model = koren2_ae.koren_AE(28*28, 28*28-50, classification, pix_by_pix=pix_by_pix)
 
-model = koren2_ae.koren_AE(28, 15, classification)
+
 model = model.double()
 model = model.to(device)
 # opt = optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
@@ -67,11 +77,13 @@ for epoch in range(epoch_num):
         inputs = torch.squeeze(inputs)
         # inputs = torch.squeeze(inputs, 1)
         # inputs = torch.reshape(inputs, (inputs.shape[0], 28 * 28))
+        if pix_by_pix:
+            inputs = torch.reshape(inputs, (inputs.shape[0], 1, 28 * 28))
         inputs = inputs.double()
         inputs = inputs.to(device)
         opt.zero_grad()
         if classification == False:
-            outputs = model(inputs)
+            outputs = model(inputs, classification)
             loss = criterion(outputs, inputs)
         else:
             outputs, label_out = model(inputs, classification)
@@ -118,12 +130,17 @@ with torch.no_grad():
         inputs = torch.squeeze(inputs)
         inputs = inputs.double()
         inputs = inputs.to(device)
-
+        if pix_by_pix:
+            inputs = torch.reshape(inputs, (inputs.shape[0], 1, 28 * 28))
         # inputs = torch.reshape(inputs, (inputs.shape[0], 28 * 28))
         if classification == False: # then show me 2 examples, nothing to test
-            outputs = model(inputs)
+            outputs = model(inputs, classification)
+            outputs = torch.reshape(outputs, (outputs.shape[0], 28, 28))
+            inputs = torch.reshape(inputs, (inputs.shape[0], 28 ,28))
+            print(inputs.shape)
             imshow(torchvision.utils.make_grid(torch.unsqueeze(inputs, 1)), "Original")
             imshow(torchvision.utils.make_grid(torch.unsqueeze(outputs, 1)), "Reconstructed")
+            break
         else:
             outputs, label_out = model(inputs, classification)
             labels = labels.to(device)

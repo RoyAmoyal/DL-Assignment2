@@ -93,9 +93,10 @@ class Decoder(nn.Module):
 
 
 class koren_AE(nn.Module):
-    def __init__(self, input_dim, encoding_dim, classification=False, h_activ=nn.Sigmoid(),
+    def __init__(self, input_dim, encoding_dim, classification=False, pix_by_pix = False, h_activ=nn.Sigmoid(),
                  out_activ=nn.Tanh()):
         super(koren_AE, self).__init__()
+        self.encoding_dim = encoding_dim
         self.encoder = Encoder(input_dim, encoding_dim, h_activ, out_activ)
         self.decoder = Decoder(encoding_dim, input_dim, h_activ)
         self.conv1 = nn.Conv2d(1, 6, 5)   # maybe 5X5
@@ -105,13 +106,19 @@ class koren_AE(nn.Module):
         self.fc2 = nn.Linear(120, 84)          # because according to the picture up, after every conv there is max-pooling
         self.fc3 = nn.Linear(84, 10)
         self.classify = classification
+        self.pix_by_pix = pix_by_pix
         # self.linearDecoder = torch.nn.Linear(60, 1)
 
     def forward(self, x, classification):
         seq_len = x.shape[0]
         x = self.encoder(x)
+        if self.pix_by_pix == True:
+            x = torch.reshape(x, (x.shape[0], 1, self.encoding_dim))
         x = self.decoder(x, seq_len)
         clone_x = x
+        if classification:
+            x = torch.reshape(x, (x.shape[0], 28, 28))
+
         if self.classify == True:
             x = x.unsqueeze(1)
             x = self.pool(F.relu(self.conv1(x)))
