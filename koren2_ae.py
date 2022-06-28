@@ -93,7 +93,7 @@ class Decoder(nn.Module):
 
 
 class koren_AE(nn.Module):
-    def __init__(self, input_dim, encoding_dim, classification=False, pix_by_pix = False, h_activ=nn.Sigmoid(),
+    def __init__(self, input_dim, encoding_dim, classification=False, prediction=True, pix_by_pix = False, h_activ=nn.Sigmoid(),
                  out_activ=nn.Tanh()):
         super(koren_AE, self).__init__()
         self.encoding_dim = encoding_dim
@@ -108,6 +108,7 @@ class koren_AE(nn.Module):
         self.classify = classification
         self.pix_by_pix = pix_by_pix
         # self.linearDecoder = torch.nn.Linear(60, 1)
+        self.prediction = prediction
 
     def forward(self, x, classification):
         seq_len = x.shape[0]

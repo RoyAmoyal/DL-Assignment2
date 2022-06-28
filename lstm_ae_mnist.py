@@ -21,13 +21,33 @@ def imshow(img,some_string):
     plt.show()
     pass
 
+
+def plot_acc(acc, epochs):
+    x = [i+1 for i in range(epochs)]
+    plt.plot(x, acc)
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.title('acc vs epochs')
+    plt.show()
+
+
+
+def plot_loss(loss, epochs):
+    x = [i+1 for i in range(epochs)]
+    plt.plot(x, loss)
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.title('loss vs epochs')
+    plt.show()
+
+
 # hyper-params
-epoch_num = 30
+epoch_num = 50
 batch_size = 600
-classification = False
+classification = True
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("Using the device: ",device)
-pix_by_pix = True
+pix_by_pix = False
 
 
 
@@ -50,7 +70,7 @@ classes = ('0', '1', '2', '3', '4',
            '5', '6', '7', '8', '9')
 
 if not pix_by_pix:
-    epoch_num = 300
+    epoch_num = 120
     model = koren2_ae.koren_AE(28, 15, classification, pix_by_pix=pix_by_pix)
 else:
     epoch_num = 5
@@ -68,6 +88,9 @@ def classification_criterion(criterion1, criterion2, outputs, inputs, labels_out
     lam1, lam2 = 1, 1
     return lam1 * criterion1(outputs, inputs) + lam2 * criterion2(labels_out, labels)
 
+
+loss_array = []
+acc_array = []
 
 for epoch in range(epoch_num):
     total_loss = 0.0
@@ -89,14 +112,27 @@ for epoch in range(epoch_num):
             outputs, label_out = model(inputs, classification)
             labels = labels.to(device)
             loss = classification_criterion(criterion, criterion2, outputs, inputs, label_out, labels)
+
+
+
         loss.backward()
         nn.utils.clip_grad_value_(model.parameters(), clip_value=1.0)  # gradient clipping
         opt.step()
         # print stats
         total_loss += loss.item()
-        if i % 100 == 99:
-                print('[%d, %5d] loss: %.6f' % (epoch + 1, i + 1, total_loss/100))
-                total_loss = 0
+    print('[%d] loss: %.6f' % (epoch + 1, total_loss))
+    loss_array.append(total_loss)
+
+    if classification == True:
+        preds = torch.argmax(label_out, dim=1)
+        res = labels
+        accuracy = sum(preds == res) / (float(len(labels))) * 100
+        print(accuracy)
+        acc_array.append(accuracy.item())
+
+plot_acc(acc_array, epoch_num)
+plot_loss(loss_array, epoch_num)
+
 # =======
 # for epoch in range(epoch_num):
 #     total_loss = 0.0
