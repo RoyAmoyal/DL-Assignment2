@@ -43,11 +43,11 @@ def plot_loss(loss, epochs):
 
 # hyper-params
 epoch_num = 50
-batch_size = 600
+batch_size = 1000
 classification = True
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("Using the device: ",device)
-pix_by_pix = False
+pix_by_pix = True
 
 
 
@@ -70,7 +70,7 @@ classes = ('0', '1', '2', '3', '4',
            '5', '6', '7', '8', '9')
 
 if not pix_by_pix:
-    epoch_num = 120
+    epoch_num = 100
     model = koren2_ae.koren_AE(28, 15, classification, pix_by_pix=pix_by_pix)
 else:
     epoch_num = 5

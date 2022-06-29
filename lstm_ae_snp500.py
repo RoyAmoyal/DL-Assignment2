@@ -15,7 +15,8 @@ import koren2_ae
 import torch.optim as optim
 from snp500dataset import sp500Dataset
 import os
-os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
+
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 
 def plot_points(g_t, prediction):
@@ -29,19 +30,6 @@ def plot_points(g_t, prediction):
     plt.xlabel('day')
     plt.show()
 
-
-def plot_points2(g_t, prediction):
-    x = [i for i in range(19)]
-    prediction = prediction.cpu()[-19:]
-    g_t = g_t.cpu()[-19:]
-    plt.plot(x, g_t, label='original stock')
-    plt.plot(x, prediction, label='reconstruction stock')
-    plt.legend()
-    plt.ylabel('value')
-    ax = plt.gca()
-    ax.set_ylim([0, 2])
-    plt.xlabel('day')
-    plt.show()
 
 
 def plot_points3(g_t, prediction):
@@ -80,7 +68,7 @@ def plotStocks():
     plt.show()
 
 
-epoch_num = 100
+epoch_num = 200
 batch_size = 20
 time_size = 1007
 input_size = 1
@@ -94,7 +82,7 @@ validationloader = validation_data.reshape(len(validation_data), input_size, tim
 # hyper-params
 begin = 0
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print("Using the device: ",device)
+print("Using the device: ", device)
 
 if prediction == False:
     seq_len = 53
@@ -128,10 +116,10 @@ def prediction_criterion(criterion1, outputs, inputs, pred, gt_pred):
 # iterate over #epochs
 for epoch in range(epoch_num):
     total_loss = 0.0
-    train_toal_loss =0.0
-    pred_toal_loss =0.0
-    pred_loss = None
-    train_loss =None
+    train_toal_loss = 0.0
+    pred_toal_loss = 0.0
+    pred_loss = 0
+    train_loss = 0
     # iterate over the dataset
     for i, data in enumerate(trainloader):
         inputs = data
@@ -145,10 +133,8 @@ for epoch in range(epoch_num):
         model.to(device)
         loss = None
         if prediction == False:
-            target = inputs[:, :, :53]
-            inputs = inputs[:, :, :52]
-            outputs, label_out = model(inputs, classification=False)  # we need to make the AE support prediction
-            loss = prediction_criterion(criterion, outputs, inputs, label_out, target)
+            outputs = model(inputs, classification=False)  # we need to make the AE support prediction
+            loss = criterion(outputs, inputs)
             loss.backward()
         elif question3dot3 == True:
             target = inputs[:, :, 52]
@@ -161,7 +147,6 @@ for epoch in range(epoch_num):
         else:
             original = inputs
             while t != 52:
-
                 target = original[:, :, t]  # 27 bindex 26
                 inputs = original[:, :, begin:t]  # 26 items mindex 0 ad 25
 
@@ -179,18 +164,15 @@ for epoch in range(epoch_num):
         opt.step()
         # print stats
         total_loss += loss.item()
-        train_toal_loss += train_loss
-        pred_toal_loss += pred_loss
+        train_toal_loss += train_loss.cpu().detach().numpy()
+        pred_toal_loss += pred_loss.cpu().detach().numpy()
 
-    training_loss.append(train_loss.cpu().detach().numpy())
-    prediction_loss.append(pred_loss.cpu().detach().numpy())
+    training_loss.append(train_toal_loss)
+    prediction_loss.append(pred_toal_loss)
 
     print('[%d] loss: %.6f' % (epoch + 1, total_loss))
 
-
-
 with torch.no_grad():
-
     total, correct = 0, 0
     counter = 0
     for data in validationloader:
@@ -200,14 +182,52 @@ with torch.no_grad():
         inputs = inputs.to(device)
         print(inputs.shape)
         inputs = torch.reshape(inputs, (1, 19, 53))
-        print(inputs[:, :, :52].shape)
-        outputs = model(inputs[:, :, :52], False)
-        outputs = torch.reshape(outputs, (1, 1, 1007))
-        inputs = torch.reshape(inputs, (1, 1, 1007))
-        outputs = outputs.squeeze()
-        inputs = inputs.squeeze()
-        plot_points(inputs, outputs)
-        plot_points2(inputs, outputs)
+        if prediction == False:
+            outputs = model(inputs, False)
+            outputs = torch.reshape(outputs, (1, 1, 1007))
+            inputs = torch.reshape(inputs, (1, 1, 1007))
+            outputs = outputs.squeeze()
+            inputs = inputs.squeeze()
+            plot_points(inputs, outputs)
+        elif prediction == True and question3dot3 == True:
+            outputs = model(inputs[:, :, :52], False)
+            outputs = torch.reshape(outputs, (1, 1, 1007))
+            inputs = torch.reshape(inputs, (1, 1, 1007))
+            outputs = outputs.squeeze()
+            inputs = inputs.squeeze()
+            plot_points(inputs, outputs)
+        else:  # seif gimel
+            original = inputs.clone()
+            t_2_series = original.clone()
+            first_26 = True
+            while t != 52:
+                target = original[:, :, t]  # 27 bindex 26
+                inputs = original[:, :, begin:t]  # 26 items mindex 0 ad 25
+
+                outputs = model(inputs, False)
+
+                loss, train_loss, pred_loss = prediction_criterion(criterion, outputs[:, :, :26], inputs,
+                                                                   outputs[:, :, 26],
+                                                                   target)
+                if first_26 == True:
+                    t_2_series[:, :, :27] = outputs[:, :, :27]
+                    first_26 = False
+                    continue
+
+                t_2_series[:, :, t] = outputs[:, :, 26]
+                t += 1
+                begin += 1
+            t = 26
+            begin = 0
+            t_2_series = torch.reshape(t_2_series, (1, 1, 1007))
+            original = torch.reshape(original, (1, 1, 1007))
+            print(original.shape)
+
+            t_2_series = t_2_series.squeeze()
+            original = original.squeeze()
+            print(original.shape)
+
+            plot_points(original, t_2_series)
 
         counter += 1
         if counter == 3:
