@@ -80,7 +80,7 @@ def plotStocks():
     plt.show()
 
 
-epoch_num = 2
+epoch_num = 100
 batch_size = 20
 time_size = 1007
 input_size = 1
@@ -186,6 +186,8 @@ for epoch in range(epoch_num):
     prediction_loss.append(pred_loss.cpu().detach().numpy())
 
     print('[%d] loss: %.6f' % (epoch + 1, total_loss))
+
+
 
 with torch.no_grad():
 
