@@ -11,22 +11,7 @@ This project is an assignment
 
 
 ## Specific Details
-We worked with three differnet datasets.
-Synthetic dataset, MNIST and S&P500 stock prices.
-
-For the Synthetic dataset I trained LSTM Auto-Encoder
-that took as an input data (sequential data) from the synthetic dataset, 
-encode this data to a lower dimention and the decode the 
-output of the encoder. 
-
-For the MNIST dataset I trained LSTM Auto-Encoder
-that took the images of the MNIST dataset and refer 
-to every image as a sequential data (row-by-row).
-Then i added the option of classification to the AE
-by compose two objective functions. 
-Then i repet the same thing but instead of refer 
-to every image as row-by-row sequence i did it pixel-by-pixel
-
-For the S&P500 dataset, in addition to train the LSTM AE,
-i modified the network to perform a prediction of the 
-stock prices.
+I worked with three different datasets. Synthetic dataset, MNIST, and S&P500 stock prices.
+For the Synthetic dataset, I trained LSTM Auto-Encoder which took as input data (sequential data) from the synthetic dataset, encode this data to a lower dimension and decode the output of the encoder.
+For the MNIST dataset, I trained the LSTM Auto-Encoder that took the images of the MNIST dataset and refer to every image as sequential data (row-by-row). Then I added the option of classification to the AE by composing two objective functions. Then I repeat the same thing but instead of referring to every image as a row-by-row sequence I did it pixel-by-pixel
+For the S&P500 dataset, in addition, to training the LSTM AE, I modified the network to perform a prediction of the stock prices.
