@@ -2,7 +2,7 @@
 ## About The Project
 This project is an assignment
  from the course "Deep Learning".
-  Several things that i learned in this project are:
+  Several things that I learned in this project are:
 
 1) Working with PyTorch
 2) Convolotional Neural Networks
@@ -14,12 +14,12 @@ This project is an assignment
 We worked with three differnet datasets.
 Synthetic dataset, MNIST and S&P500 stock prices.
 
-For the Synthetic dataset i trained LSTM Auto-Encoder
+For the Synthetic dataset I trained LSTM Auto-Encoder
 that took as an input data (sequential data) from the synthetic dataset, 
 encode this data to a lower dimention and the decode the 
 output of the encoder. 
 
-For the MNIST dataset i trained LSTM Auto-Encoder
+For the MNIST dataset I trained LSTM Auto-Encoder
 that took the images of the MNIST dataset and refer 
 to every image as a sequential data (row-by-row).
 Then i added the option of classification to the AE
