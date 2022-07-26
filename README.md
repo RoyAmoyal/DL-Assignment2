@@ -18,3 +18,8 @@ For the Synthetic dataset, we trained LSTM Auto-Encoder which took as input data
 For the MNIST dataset, we trained the LSTM Auto-Encoder that took the images of the MNIST dataset and refer to every image as sequential data (row-by-row). Then we added the option of classification to the AE by composing two objective functions. Then we repeat the same thing but instead of referring to every image as a row-by-row sequence we did it pixel-by-pixel.
 
 For the S&P500 dataset, in addition, to training the LSTM AE, we modified the network to perform a prediction of the stock prices.
+
+## Examples of the AE for the different datasets
+
+
+
