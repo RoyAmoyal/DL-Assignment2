@@ -28,3 +28,7 @@ The AE results on the MNIST dataset:
 The AE results on the synthetic dataset:
 
 ![syntheticData](syntheticData.jpg)
+
+The AE results on the S&P500 dataset (some specific stock):
+
+![snpp500](snp500.jpg)
