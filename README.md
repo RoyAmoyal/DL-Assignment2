@@ -25,5 +25,6 @@ The AE results on the MNIST dataset:
 
 ![mnist-AE](mnist-AE.jpeg)
 
+The AE results on the synthetic dataset:
 
-
+![syntheticData](syntheticData.jpg)
