@@ -23,7 +23,7 @@ For the S&P500 dataset, in addition, to training the LSTM AE, we modified the ne
 
 The AE results on the MNIST dataset:
 
-![mnist-AE](mnist-AE.jpg)
+![mnist-AE](mnist-AE.jpeg)
 
 
 
