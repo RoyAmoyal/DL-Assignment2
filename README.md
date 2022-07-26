@@ -21,5 +21,9 @@ For the S&P500 dataset, in addition, to training the LSTM AE, we modified the ne
 
 ## Examples of the AE for the different datasets
 
+The AE results on the MNIST dataset:
+
+![mnist-AE](mnist-AE.jpg)
+
 
 
