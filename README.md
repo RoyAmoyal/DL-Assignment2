@@ -6,7 +6,7 @@ This project is an assignment
 
 1) Working with PyTorch
 2) Convolotional Neural Networks
-3) Woring with sequential data
+3) Working with sequential data
 4) LSTM Auto-Encoder
 
 
