@@ -8,6 +8,7 @@ This project is an assignment
 2) Convolotional Neural Networks
 3) Working with sequential data
 4) LSTM Auto-Encoder
+5) Time Series Forecasting
 
 
 ## Specific Details
